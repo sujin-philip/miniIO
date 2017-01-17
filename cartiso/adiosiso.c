@@ -34,7 +34,7 @@ void adiosiso_init(struct adiosisoinfo *nfo, char *method, char *name,
 
     /* Set up ADIOS */
     adios_init_noxml(comm);    /* Not sure if this would conflict with adiosfull */
-    adios_declare_group(&nfo->gid, nfo->name, "", adios_flag_no);
+    adios_declare_group(&nfo->gid, nfo->name, "", adios_stat_no);
     adios_select_method(nfo->gid, method, "", "");
 
     /* Define output variables */
@@ -116,10 +116,11 @@ void adiosiso_write(struct adiosisoinfo *nfo, int tstep, uint64_t ntris, float *
         conns[i] = i;
 
     /* Set filename */
-    snprintf(fname, fnstrmax, "%s.%0*d.bp", nfo->name, timedigits, tstep);
+    snprintf(fname, fnstrmax, "%s.bp", nfo->name);
 
     /* Open & Write */
-    ret = adios_open(&handle, nfo->name, fname, "w", nfo->comm);
+    const char *writemode = (tstep == 0) ? "w" : "a";
+    ret = adios_open(&handle, nfo->name, fname, writemode, nfo->comm);
     if(ret) {
         fprintf(stderr, "Error opening ADIOS file: %s\n", fname);
         return;

@@ -48,7 +48,7 @@ void adiosfull_init(struct adiosfullinfo *nfo, char *method,
     
     /* Set up ADIOS */ 
     adios_init_noxml(comm);
-    adios_declare_group(&nfo->gid, nfo->name, "", adios_flag_no);
+    adios_declare_group(&nfo->gid, nfo->name, "", adios_stat_no);
     /*chkdir1task(dirname, comm);*/
     adios_select_method(nfo->gid, method, "", /*dirname*/"");
 
@@ -76,8 +76,9 @@ void adiosfull_addvar(struct adiosfullinfo *nfo, char *varname, float *data)
     nfo->varnames[nfo->nvars] = varname;
     nfo->datas[nfo->nvars] = data;
     nfo->nvars++;
-    adios_define_var(nfo->gid, varname, "", adios_real, "cni,cnj,cnk",
-                     "ni,nj,nk", "is,js,ks");
+    // write transpose
+    adios_define_var(nfo->gid, varname, "", adios_real, "cnk,cnj,cni",
+                     "nk,nj,ni", "ks,js,is");
 }
 
 void adiosfull_write(struct adiosfullinfo *nfo, int tstep)
@@ -98,7 +99,7 @@ void adiosfull_write(struct adiosfullinfo *nfo, int tstep)
 
     /* Allocate buffer large enough for all data to write, if not done already */
     bufneeded = (int)(groupsize/(1024*1024));
-    bufneeded += bufneeded/8 + 2;   /* Add an extra 12.5% & 2MB to be sure */
+    bufneeded += bufneeded/2 + 2;   /* Add an extra 50% & 2MB to be sure */
     if(nfo->bufallocsize < bufneeded) {
 #       if ADIOS_VERSION_GE(1,10,0)
         adios_set_max_buffer_size(bufneeded);
@@ -109,10 +110,11 @@ void adiosfull_write(struct adiosfullinfo *nfo, int tstep)
     }
 
     /* Set filename */
-    snprintf(fname, fnstrmax, "%s_%0*d", nfo->name, timedigits, tstep);
+    snprintf(fname, fnstrmax, "%s.bp", nfo->name);
 
     /* Open & Write */
-    ret = adios_open(&handle, nfo->name, fname, "w", nfo->comm);
+    const char *writemode = (tstep == 0) ? "w" : "a";
+    ret = adios_open(&handle, nfo->name, fname, writemode, nfo->comm);
     if(ret) {
         fprintf(stderr, "Error opening ADIOS file: %s\n", fname);
         return;
@@ -147,4 +149,3 @@ void adiosfull_finalize(struct adiosfullinfo *nfo)
     free(nfo->datas);
     adios_finalize(nfo->rank);
 }
-
