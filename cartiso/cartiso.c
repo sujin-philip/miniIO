@@ -380,9 +380,9 @@ int main(int argc, char **argv)
     /* add a ghost point to the far side of each axis for pvti & iso continuity */
     /* note: this seems to confuse readability of formats that don't expect continuity, 
      *       like ADIOS and ?, but it does not hurt for mere benchmarking of those */
-    if(1 && crnk[0] < inp-1)   cni++;
-    if(1 && crnk[1] < jnp-1)   cnj++;
-    if(1 && crnk[2] < knp-1)   cnk++;
+    //if(1 && crnk[0] < inp-1)   cni++;
+    //if(1 && crnk[1] < jnp-1)   cnj++;
+    //if(1 && crnk[2] < knp-1)   cnk++;
 
     /* Set up space filling curve for gaussmove
           The curve moves through each parallel task */
