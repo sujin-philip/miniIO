@@ -76,7 +76,8 @@ void adiosfull_addvar(struct adiosfullinfo *nfo, char *varname, float *data)
     nfo->varnames[nfo->nvars] = varname;
     nfo->datas[nfo->nvars] = data;
     nfo->nvars++;
-    // write transpose
+    // ADIOS expects column major arrays in C/C++. Transpose dimensions and
+    // indices instead of transposing the array
     adios_define_var(nfo->gid, varname, "", adios_real, "cnk,cnj,cni",
                      "nk,nj,ni", "ks,js,is");
 }
